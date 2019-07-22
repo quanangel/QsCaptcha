@@ -1,0 +1,19 @@
+{
+    "name": "nowqs/captcha",
+    "description": "just captcha",
+    "type": "library",
+    "license": "apache-2.0",
+    "authors": [
+        {
+            "name": "Qs",
+            "email": "quanangel@outlook.com"
+        }
+    ],
+    "minimum-stability": "dev",
+    "require": {},
+    "autoload": {
+        "psr-4": {
+            "Qs\\captcha\\": "src/"
+        }
+    }
+}
