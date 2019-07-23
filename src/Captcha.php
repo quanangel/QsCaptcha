@@ -214,7 +214,7 @@ Class Captcha {
 
     // 使用seKey值加密
     private function encrypt_code($code) {
-        return md5($this->seKey.$code);
+        return md5($this->key.$code);
     }
 
 }
