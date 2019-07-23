@@ -110,6 +110,7 @@ Class Captcha {
                 imagettftext($this->im, $this->fontSize, mt_rand(-40, 40), $codeNX, $this->fontSize * 1.6, $this->fontColor, $this->fontttf, $code[$i]);
             }
         }
+        if (is_array($code)) $code = implode("", $code);
         $redis = new QsRedis($this->db_redis);
         $codeKey = $this->encrypt_code($code);
         $redis->set($codeKey, $code, ['ex'=> $this->expire]);
