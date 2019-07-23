@@ -10,7 +10,9 @@
         }
     ],
     "minimum-stability": "dev",
-    "require": {},
+    "require": {
+        "nowqs/redis": "dev-master"
+    },
     "autoload": {
         "psr-4": {
             "Qs\\captcha\\": "src/"
