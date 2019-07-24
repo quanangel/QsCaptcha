@@ -9,7 +9,7 @@ Class Captcha {
         // 验证码字符集合
         'codeSet'  => '2345678abcdefhijkmnpqrstuvwxyzABCDEFGHJKLMNPQRTUVWXY',
         // 验证码过期时间（s）
-        'expire'   => 1800,
+        'expire'   => 180,
         // 使用中文验证码
         'useZh'    => false,
         // 中文验证码字符串
@@ -60,6 +60,31 @@ Class Captcha {
         return $this->config[$name];
     }
 
+    /**
+     * @Author : Qs
+     * @Name   : 验证验证码
+     * @Note   : 
+     * @Time   : 2019/07/24 10:57
+     * @param     String    $code    用户输入的验证码
+     * @param     String    $key     生成验证码图片时带的KEY
+     * @return    Boolean
+     **/
+    public function check($code, $key) {
+        $redis = new QsRedis($this->db_redis);
+        if (!$redis->has($key)) return ['status'=>0, 'msg' =>'无该验证码'];
+        $microTime = $redis->get($key);
+        $encryptCode = $this->encrypt_code($code, $microTime);
+        $redis->rm($key);
+        return ($encryptCode == $key);
+    }
+
+    /**
+     * @Author : Qs
+     * @Name   : 生成验证码图片
+     * @Note   : 
+     * @Time   : 2019/07/24 10:58
+     * @return    Array
+     **/
     public function entry() {
         // 图片宽度
         if (empty($this->imageW)) $this->imageW = $this->length * $this->fontSize * 1.5 + $this->length * $this->fontSize / 2;
@@ -110,17 +135,23 @@ Class Captcha {
                 imagettftext($this->im, $this->fontSize, mt_rand(-40, 40), $codeNX, $this->fontSize * 1.6, $this->fontColor, $this->fontttf, $code[$i]);
             }
         }
+        // 验证码数组转成字符串
         if (is_array($code)) $code = implode("", $code);
+        // 获取微秒级时间戳
+        $microTime = str_ireplace('.','',microtime(true));
+        // 获取redis连接对像
         $redis = new QsRedis($this->db_redis);
-        $codeKey = $this->encrypt_code($code);
-        $redis->set($codeKey, $code, ['ex'=> $this->expire]);
+        // 加密
+        $codeKey = $this->encrypt_code($code, $microTime);
+        // 保存进redis
+        $redis->set($codeKey, $microTime, ['ex'=> $this->expire]);
 
         ob_start();
         // 输出图像
         imagepng($this->im);
         $content = ob_get_clean();
         imagedestroy($this->im);
-        return ['type' => 'image/png', 'key' => $codeKey, 'image' => $content];
+        return ['status' => 1, 'type' => 'image/png', 'key' => $codeKey, 'image' => $content];
     }
 
     // 绘制背景图片
@@ -213,9 +244,18 @@ Class Captcha {
         }
     }
 
-    // 使用seKey值加密
-    private function encrypt_code($code) {
-        return md5($this->key.$code);
+    // 使用Key值加密
+    /**
+     * @Author : Qs
+     * @Name   : 加密值
+     * @Note   : 
+     * @Time   : 2019/07/24 10:42
+     * @param     String     $code         验证码
+     * @param     Integer    $microTime    时间戳（微秒）
+     * @return    String
+     **/
+    private function encrypt_code($code, $microTime) {
+        return md5($code . $this->key . $microTime);
     }
 
 }
