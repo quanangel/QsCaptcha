@@ -2,9 +2,9 @@
 
 namespace Qs\captcha;
 
-use Qs\redis\QsRedis;
-Class Captcha {
-    protected $config =[
+class Captcha
+{
+    protected $config = [
         'key'      => 'nowQs',
         // 验证码字符集合
         'codeSet'  => '2345678abcdefhijkmnpqrstuvwxyzABCDEFGHJKLMNPQRTUVWXY',
@@ -32,17 +32,6 @@ Class Captcha {
         'fontttf'  => '',
         // 背景颜色
         'bg'       => [243, 251, 254],
-        'db_redis' => [
-            'HOST'       => '127.0.0.1',    // 地址
-            'PORT'       => 6379,           // 端口
-            'PASSWORD'   => '123456',       // 验证密码
-            'SELECT'     => 0,              // 选择的表
-            'TIMEOUT'    => 0,              //
-            'EXPIRE'     => 3600,           // 有效时间
-            'PERSISTENT' => False,          // 
-            'PREFIX'     => 'now_',         // 前缀
-            'PREFIX_STATUS' => True,         // 是否使用前缀
-        ],
     ];
 
     // 验证码图片实例
@@ -52,30 +41,14 @@ Class Captcha {
     // 验证码字体颜色
     private $fontColor = null;
 
-    public function  __construct($config = []) {
+    public function  __construct($config = [])
+    {
         $this->config = array_merge($this->config, $config);
     }
 
-    public function __get($name) {
+    public function __get($name)
+    {
         return $this->config[$name];
-    }
-
-    /**
-     * @Author : Qs
-     * @Name   : 验证验证码
-     * @Note   : 
-     * @Time   : 2019/07/24 10:57
-     * @param     String    $code    用户输入的验证码
-     * @param     String    $key     生成验证码图片时带的KEY
-     * @return    Boolean
-     **/
-    public function check($code, $key) {
-        $redis = new QsRedis($this->db_redis);
-        if (!$redis->has($key)) return ['status'=>0, 'msg' =>'无该验证码'];
-        $microTime = $redis->get($key);
-        $encryptCode = $this->encrypt_code($code, $microTime);
-        $redis->rm($key);
-        return ($encryptCode == $key);
     }
 
     /**
@@ -85,7 +58,8 @@ Class Captcha {
      * @Time   : 2019/07/24 10:58
      * @return    Array
      **/
-    public function entry() {
+    public function entry()
+    {
         // 图片宽度
         if (empty($this->imageW)) $this->imageW = $this->length * $this->fontSize * 1.5 + $this->length * $this->fontSize / 2;
         // 图片高度
@@ -98,7 +72,7 @@ Class Captcha {
         $this->fontColor = imagecolorallocate($this->im, mt_rand(151, 255), mt_rand(151, 255), mt_rand(151, 255));
         // 验证码使用随机字体
         $ttfPath = __DIR__ . '/../assets/' . ($this->useZh ? 'zhttfs' : 'ttfs') . '/';
-        
+
         if (empty($this->fontttf)) {
             $dir  = dir($ttfPath);
             $ttfs = [];
@@ -138,13 +112,9 @@ Class Captcha {
         // 验证码数组转成字符串
         if (is_array($code)) $code = implode("", $code);
         // 获取微秒级时间戳
-        $microTime = str_ireplace('.','',microtime(true));
-        // 获取redis连接对像
-        $redis = new QsRedis($this->db_redis);
+        $microTime = str_ireplace('.', '', microtime(true));
         // 加密
         $codeKey = $this->encrypt_code($code, $microTime);
-        // 保存进redis
-        $redis->set($codeKey, $microTime, ['ex'=> $this->expire]);
 
         ob_start();
         // 输出图像
@@ -155,7 +125,8 @@ Class Captcha {
     }
 
     // 绘制背景图片
-    private function background() {
+    private function background()
+    {
         $path = __DIR__ . '/../assets/bgs/';
         $dir  = dir($path);
 
@@ -177,7 +148,8 @@ Class Captcha {
     }
 
     // 画杂点,往图片上写不同颜色的字母或数字
-    private function writeNoise() {
+    private function writeNoise()
+    {
         $codeSet = '2345678abcdefhijkmnpqrstuvwxyz';
         for ($i = 0; $i < 10; $i++) {
             //杂点颜色
@@ -199,7 +171,8 @@ Class Captcha {
      *        ω：决定周期（最小正周期T=2π/∣ω∣）
      *
      */
-    private function writeCurve() {
+    private function writeCurve()
+    {
         $px = $py = 0;
 
         // 曲线前部分
@@ -254,8 +227,8 @@ Class Captcha {
      * @param     Integer    $microTime    时间戳（微秒）
      * @return    String
      **/
-    private function encrypt_code($code, $microTime) {
+    private function encrypt_code($code, $microTime)
+    {
         return md5($code . $this->key . $microTime);
     }
-
 }
