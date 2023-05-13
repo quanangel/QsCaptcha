@@ -121,7 +121,7 @@ class Captcha
         imagepng($this->im);
         $content = ob_get_clean();
         imagedestroy($this->im);
-        return ['status' => 1, 'type' => 'image/png', 'key' => $codeKey, 'image' => $content];
+        return ['status' => 1, 'type' => 'image/png', 'code' => $code, 'key' => $codeKey, 'image' => $content];
     }
 
     // 绘制背景图片
